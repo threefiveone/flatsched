@@ -1,0 +1,8 @@
+micronaut:
+  application:
+    name: flatsched
+  settings:
+    slot:
+      from-hour: 10
+      till-hour: 20
+      size-minutes: 20
