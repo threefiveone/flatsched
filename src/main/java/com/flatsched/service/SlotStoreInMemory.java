@@ -20,17 +20,23 @@ public class SlotStoreInMemory implements SlotStore {
     /**
      * the map stores only busy time slots of a day
      * the map key is a week day (date)
-     * the map value is a list of busy (approved or waiting to approve) slots
+     * the map value is a list of busy (approved or waiting to approve or rejected) slots
      */
-    private Map<LocalDate, Map<LocalTime, SlotData>> map;
+    private Map<LocalDate, Map<LocalTime, SlotData>> mapDayToSlots;
 
     @PostConstruct
     void init() {
-        map = new ConcurrentHashMap<>();
+        mapDayToSlots = new ConcurrentHashMap<>();
     }
 
     public Optional<ProcessedSlot> tryToReserveSlot(long tenantId, LocalDate date, LocalTime time) {
-        Map<LocalTime, SlotData> daySlotsMap = map.computeIfAbsent(date, k -> new ConcurrentHashMap<>());
+        Map<LocalTime, SlotData> daySlotsMap;
+        // locking the main map for a short period of time
+        synchronized (mapDayToSlots) {
+            daySlotsMap = mapDayToSlots.computeIfAbsent(date, k -> new ConcurrentHashMap<>());
+        }
+
+        //locking only one day map
         synchronized (daySlotsMap) {
             if (!daySlotsMap.containsKey(time)) {
                 SlotData slot = new SlotData(time, SlotStatus.WAITING_APPROVAL, tenantId);
@@ -42,7 +48,7 @@ public class SlotStoreInMemory implements SlotStore {
     }
 
     public Optional<ProcessedSlot> tryToCancelSlot(long tenantId, LocalDate date, LocalTime time) {
-        Map<LocalTime, SlotData> daySlotsMap = map.computeIfAbsent(date, k -> new ConcurrentHashMap<>());
+        Map<LocalTime, SlotData> daySlotsMap = mapDayToSlots.computeIfAbsent(date, k -> new ConcurrentHashMap<>());
         SlotData slot = daySlotsMap.get(time);
         if (slot != null) {
             if (slot.getTenantId() == tenantId && slot.getStatus() != SlotStatus.REJECTED) {
@@ -80,7 +86,7 @@ public class SlotStoreInMemory implements SlotStore {
 
     private Optional<ProcessedSlot> findAndChangeSlot(LocalDate date, LocalTime time,
                                                       Function<Optional<SlotData>, ProcessedSlot> slotAction) {
-        Map<LocalTime, SlotData> daySlotsMap = map.getOrDefault(date, Collections.emptyMap());
+        Map<LocalTime, SlotData> daySlotsMap = mapDayToSlots.getOrDefault(date, Collections.emptyMap());
         SlotData slot = daySlotsMap.get(time);
         return Optional.ofNullable(
                 slotAction.apply(
@@ -89,6 +95,6 @@ public class SlotStoreInMemory implements SlotStore {
 
     @Override
     public void removeAllDataForTesting() {
-        map.clear();
+        mapDayToSlots.clear();
     }
 }
