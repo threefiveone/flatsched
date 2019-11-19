@@ -1,27 +1,26 @@
 ### Solution Description
-See task description below
-This solution consists of 4 services.
+See task description below.  
+This solution has 4 services:
 
-1. Viewing reservation service
+1. Viewing reservation service  
 PUT /flat/viewing-slot/2019-11-12/10-00?tenantId=1
 
-2. Viewing cancelling service
+2. Viewing cancelling service  
 DELETE /flat/viewing-slot/2019-11-12/10-00?tenantId=1
 
-3. Approving service
+3. Approving service  
 PUT /flat/viewing-slot/2019-11-12/10-00/approve
 
-4. Rejecting service
+4. Rejecting service  
 PUT /flat/viewing-slot/2019-11-12/10-00/reject
-
 
 ### Backend task description
 
 Develop a flat viewing scheduler.
 
 There are 2 parties to the service:
-New Tenants who are moving in
-Current Tenant who lives in a flat
+* New Tenants who are moving in
+* Current Tenant who lives in a flat
 
 #### Service requirements:
 1. Flat has 20-minute viewing slots from 10:00 to 20:00 for the upcoming week
@@ -31,11 +30,11 @@ Current Tenant who lives in a flat
 5. New Tenant can cancel the viewing at any point, current tenant should be notified and viewing slot becomes vacant.
 
 #### Constraints:
-Kotlin/Java as a language
-Make service available over HTTP
-Use minimal approach to the task, no need to use DB/authentication
-Please don’t use big frameworks such as Spring(boot)
-Use stubs for notifications
+Kotlin/Java as a language  
+Make service available over HTTP  
+Use minimal approach to the task, no need to use DB/authentication  
+Please don’t use big frameworks such as Spring(boot)  
+Use stubs for notifications  
 
 #### Evaluation:
 Expecting to see feature complete, clean and tested code
